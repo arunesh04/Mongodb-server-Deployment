@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+ name: mongo-learn
+ labels:
+   app: mongolearn
+spec:
+ selector:
+   matchLabels:
+     app: mongolearn
+ replicas: 3
+ template:
+   metadata:
+     labels:
+       app: mongolearn
+   spec:
+     containers:
+     - name: mongo
+       image: mongo:6
+       ports:
+         - containerPort: 27017
+       env:
+       - name: MONGO_INITDB_ROOT_USERNAME
+         valueFrom:
+           secretKeyRef:
+             name: mongolearn-secrets
+             key: mdbusername
+       - name: MONGO_INITDB_ROOT_PASSWORD
+         valueFrom:
+           configMapKeyRef:
+             name: mongolearn-config
+             key: password     
+---
+apiVersion: v1
+kind: Service
+metadata:
+ name: mongolearn-serivce
+spec:
+ selector:
+   app: mongolearn
+ type: LoadBalancer
+ ports:
+ - protocol: TCP
+   port: 3000   
+   targetPort: 27017
